@@ -1,0 +1,7 @@
+input_video
+output_videos
+model
+traning/cricket-ball-segmentation-5
+traning/Cricket-Pitch-7
+yolov8x.pt
+runs
