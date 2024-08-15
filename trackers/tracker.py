@@ -17,10 +17,10 @@ class Tracker:
     def detect_frames(self, frames):
         batch_size = 20
         detections = []
+
         for i in range(0, len(frames), batch_size):
-            detections_batch = self.model.predict(frames[i:i+batch_size], conf=0.1)
+            detections_batch = self.model.predict(frames[i:i+batch_size], conf=0.05)
             detections += detections_batch
-            break
         return detections
 
     def get_object_tracks(self, frames, read_fram_stub= False, stub_path=None):
@@ -32,41 +32,35 @@ class Tracker:
 
         detections = self.detect_frames(frames)
 
+        print('Iakhdfg ', detections)
+
+
         tracks = {
             "ball" : []
         }
 
         for frame_num, detection  in enumerate(detections):
-            print('inside')
             cls_names = detection.names
             cls_names_inv = {v:k for k,v in cls_names.items()}
 
             detection_supervision = sv.Detections.from_ultralytics(detection)
 
-            #track object
-            detection_with_tracks = self.tracker.update_with_detections(detection_supervision)
-
             tracks["ball"].append({})
-            print(detection_with_tracks)
-            print('22222222222222222222222222222222222')
-            for frame_detection in detection_with_tracks:
+
+            for frame_detection in detection_supervision:
                 bbox = frame_detection[0].tolist()
                 cls_id = frame_detection[3]
-                trackId = frame_detection[4]
 
-                print('before', bbox)
+                print('achecking BBOx', bbox)
                 print(cls_id, cls_names_inv)
 
                 if cls_id == cls_names_inv['ball']:
                     print('inside')
                     tracks["ball"][frame_num][1] = {"bbox":bbox}
 
-                print('tracs', tracks)
-                print('eeeeeeeeeeeeeeeeeeeeeee')
-
-        # if stub_path is not None:
-        #     with open(stub_path, 'wb') as f:
-        #         pickle.dump(tracks, f)
+        if stub_path is not None:
+            with open(stub_path, 'wb') as f:
+                pickle.dump(tracks, f)
 
         return tracks
 
@@ -89,10 +83,10 @@ class Tracker:
         output_video_frames= []
         for frame_num, frame in enumerate(video_frames):
             frame = frame.copy()
-            ball_dict = tracks["ball"][frame_num]
-            print(ball_dict)
 
-            for  ball in ball_dict.items():
+            ball_dict = tracks["ball"][frame_num]
+
+            for track_id, ball in ball_dict.items():
                 frame = self.draw_traingle(frame, ball["bbox"],(0,255,0))
 
             output_video_frames.append(frame)
