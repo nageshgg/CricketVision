@@ -7,19 +7,41 @@ import pandas as pd
 import cv2
 import sys 
 sys.path.append('../')
-from utils import get_center_of_bbox, get_bbox_width, get_foot_position
+from utils import get_center_of_bbox
 
 class Tracker:
     def __init__(self, model_path) -> None:
         self.model = YOLO(model_path)
         self.tracker = sv.ByteTrack()
 
+    def add_position_to_tracks(sekf,tracks):
+        for object, object_tracks in tracks.items():
+            for frame_num, track in enumerate(object_tracks):
+                for track_id, track_info in track.items():
+                    bbox = track_info['bbox']
+                    position= get_center_of_bbox(bbox)
+                    print(',Position',position)
+                    tracks[object][frame_num][track_id]['position'] = position
+                    print(object, ' + ', frame_num ,' + ', track_id , '+', tracks[object][frame_num][track_id]['position'])
+
+    def interpolate_ball_positions(self,ball_positions):
+        ball_positions = [x.get(1,{}).get('bbox',[]) for x in ball_positions]
+        df_ball_positions = pd.DataFrame(ball_positions,columns=['x1','y1','x2','y2'])
+
+        # Interpolate missing values
+        df_ball_positions = df_ball_positions.interpolate()
+        df_ball_positions = df_ball_positions.bfill()
+
+        ball_positions = [{1: {"bbox":x}} for x in df_ball_positions.to_numpy().tolist()]
+
+        return ball_positions
+
     def detect_frames(self, frames):
         batch_size = 20
         detections = []
 
         for i in range(0, len(frames), batch_size):
-            detections_batch = self.model.predict(frames[i:i+batch_size], conf=0.05)
+            detections_batch = self.model.predict(frames[i:i+batch_size], conf=0.20)
             detections += detections_batch
         return detections
 
@@ -31,8 +53,6 @@ class Tracker:
             return tracks
 
         detections = self.detect_frames(frames)
-
-        print('Iakhdfg ', detections)
 
 
         tracks = {
@@ -77,7 +97,6 @@ class Tracker:
         cv2.drawContours(frame, [triangle_points],0,(0,0,0), 2)
 
         return frame
-
 
     def draw_annotations(self,video_frames, tracks):
         output_video_frames= []
