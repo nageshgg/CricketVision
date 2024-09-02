@@ -100,14 +100,17 @@ class Tracker:
 
     def draw_annotations(self,video_frames, tracks):
         output_video_frames= []
+        ball_dict = None
         for frame_num, frame in enumerate(video_frames):
             frame = frame.copy()
 
             ball_dict = tracks["ball"][frame_num]
+
+            # print(len(tracks["ball"]))
 
             for track_id, ball in ball_dict.items():
                 frame = self.draw_traingle(frame, ball["bbox"],(0,255,0))
 
             output_video_frames.append(frame)
             
-        return output_video_frames
+        return output_video_frames, ball_dict

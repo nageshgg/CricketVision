@@ -14,3 +14,11 @@ def measure_xy_distance(p1,p2):
 def get_foot_position(bbox):
     x1,y1,x2,y2 = bbox
     return int((x1+x2)/2),int(y2)
+
+def is_yorker(position, x1, y1, x2, y2):
+    x_ball, y_ball = position
+    print('\in')
+    
+    if x1 <= x_ball <= x2 and y1 <= y_ball <= y2:
+        return True
+    return False
