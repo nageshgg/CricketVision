@@ -38,7 +38,7 @@ def main():
 
 
     ## Draw Speed and Distance
-    output_video_frames= speed_and_distance_estimator.draw_speed_and_distance(output_video_frames,tracks)
+    output_video_frames = speed_and_distance_estimator.draw_speed_and_distance(output_video_frames,tracks)
 
     ## Draw frame number on top left corner
     for i, frame in enumerate(output_video_frames):
